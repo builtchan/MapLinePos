@@ -1,4 +1,4 @@
-#ifndef MAPLINEPOS_H
+﻿#ifndef MAPLINEPOS_H
 #define MAPLINEPOS_H
 /*
  *  author  :chenjc
@@ -22,6 +22,7 @@
 #include "xmlparse.h"
 #include <QFileDialog>
 #include <QRadioButton>
+#include <QCheckBox>
 
 class CMapLinePos : public QWidget
 {
@@ -76,12 +77,17 @@ private:
 
     QPushButton *m_Next_Elem_Btn;    //下一个站点参数展示按钮
     QPushButton *m_Prev_Elem_Btn;    //上一个站点参数展示按钮
+    QPushButton *m_Prev_Line_Bit;   //
+    QPushButton *m_Next_Line_Bit;   //
     QPushButton *m_CreateNewNode_Btn; //生成新节点
     QPushButton *m_CreateNewXml_Btn; //更新站点参数
 
     QRadioButton *m_Multiple_RadioBtn;  //是否使用倍数
     QLabel *m_Multiple_label;           //倍数
     QLineEdit *m_Multiple;
+
+    QCheckBox *m_SaveLocation_CheckBox;  //
+    QLabel *m_SaveLocation_label;           //
 
 
 public:
@@ -112,6 +118,8 @@ public slots:
     void on_click_OpenSlot();
     void on_click_Show_prev_Station_slot();
     void on_click_Show_next_Station_slot();
+    void on_click_Show_next_Line_slot();
+    void on_click_Show_prev_Line_slot();
     void on_click_AddNewNode_slot();
     void on_click_CreateNewXml_slot();
     void on_click_GetFilePath_slot();

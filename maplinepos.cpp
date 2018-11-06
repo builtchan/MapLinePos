@@ -1,5 +1,5 @@
-#include "mapLinePos.h"
-
+﻿#include "mapLinePos.h"
+#include <QCoreApplication>
 CMapLinePos::CMapLinePos(QWidget *parent)
     : QWidget(parent)
 {
@@ -14,6 +14,8 @@ CMapLinePos::CMapLinePos(QWidget *parent)
     QObject::connect(m_Next_pict_btn,SIGNAL(clicked()),this,SLOT(on_click_Show_Next_slot()));
     QObject::connect(m_Prev_Elem_Btn,SIGNAL(clicked()),this,SLOT(on_click_Show_prev_Station_slot()));
     QObject::connect(m_Next_Elem_Btn,SIGNAL(clicked()),this,SLOT(on_click_Show_next_Station_slot()));
+    QObject::connect(m_Prev_Line_Bit,SIGNAL(clicked()),this,SLOT(on_click_Show_prev_Line_slot()));
+    QObject::connect(m_Next_Line_Bit,SIGNAL(clicked()),this,SLOT(on_click_Show_next_Line_slot()));
     QObject::connect(m_CreateNewNode_Btn,SIGNAL(clicked()),this,SLOT(on_click_AddNewNode_slot()));
     QObject::connect(m_CreateNewXml_Btn,SIGNAL(clicked()),this,SLOT(on_click_CreateNewXml_slot()));
     QObject::connect(m_Multiple_RadioBtn,SIGNAL(clicked()),this,SLOT(Choice_Use_Multiple_slot()));
@@ -57,7 +59,15 @@ void CMapLinePos::Init()
     //路径文本输入框
     m_Path_Test = new QLineEdit(this);
     m_Path_Test->setGeometry(0,0,300,30);
-    m_Path_Test->setText("C:/Users/built/Desktop/地图参数/");
+
+    QString strPath = QCoreApplication::applicationDirPath();
+#ifdef WIN32
+    strPath.replace("/","\\");
+    strPath += "\\";
+#elif
+    strPath += "/";
+#endif
+    m_Path_Test->setText(strPath);
     //线路图片展示
     m_PictureLabel = new QLabel(this);
     m_PictureLabel->hide();
@@ -76,6 +86,11 @@ void CMapLinePos::mousePressEvent(QMouseEvent *e)
     {
         m_stStation.coords_chs.Top_x = pt.x();
         m_stStation.coords_chs.Top_y = pt.y();
+        if(m_SaveLocation_CheckBox->isChecked())
+        {
+            m_stStation.coords_en.Top_x = pt.x();
+            m_stStation.coords_en.Top_y = pt.y();
+        }
     }
     else
     {
@@ -95,6 +110,11 @@ void CMapLinePos::mouseReleaseEvent(QMouseEvent *e)
     {
         m_stStation.coords_chs.Under_x = pt.x();
         m_stStation.coords_chs.Under_y = pt.y();
+        if(m_SaveLocation_CheckBox->isChecked())
+        {
+            m_stStation.coords_en.Under_x = pt.x();
+            m_stStation.coords_en.Under_y = pt.y();
+        }
     }
     else
     {
@@ -165,7 +185,13 @@ void CMapLinePos::on_click_GetFilePath_slot()
         return;
     }
     else
+    {
+#ifdef WIN32
+        m_Path_Test->setText(file_path.replace("/","\\") + "\\");
+#elif
         m_Path_Test->setText(file_path + "/");
+#endif
+    }
 
 }
 
@@ -181,22 +207,23 @@ void CMapLinePos::on_click_OpenSlot()
 
     QDir dir(m_Path_Test->text()+ "/");
     QStringList names;
-    names <<"*.png" ;
+    names <<"*.**g" ;
     m_Picture_list = dir.entryList(names,QDir::NoFilter,QDir::Name);
     if(m_Picture_list.isEmpty())
     {
-        m_WarningMessage->setText("请确认路径是否正确");
+        m_WarningMessage->setText("该路径下没有jpg或者png图片");
         m_WarningMessage->show();
         return;
     }
     QString xmlname = m_Path_Test->text() + "MapLineConfig.xml";
+    qDebug() << xmlname;
     int iRet = m_pXmlParse->MapLineXmlParse(xmlname.toStdString().c_str());
     if(0 != iRet)
     {
         switch(iRet)
         {
         case -1:
-            m_WarningMessage->setText("文件路径为空");
+            m_WarningMessage->setText("无MapLineConfig.xml文件");
             m_WarningMessage->show();
             break;
         case 1:
@@ -265,6 +292,27 @@ void CMapLinePos::on_click_Show_next_Station_slot()
     memset(&m_stStation,0,sizeof(m_stStation));
     memcpy(&m_stStation,&(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
     ParamShowReflesh(m_stStation);
+}
+//转跳下一条线路
+void CMapLinePos::on_click_Show_next_Line_slot()
+{
+    int iCurLine = atoi(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value().lineid);
+
+    for(; m_iStation < m_pXmlParse->m_stPostionTempMap.size();m_iStation++)
+    {
+        if(iCurLine != atoi(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value().lineid))
+            break;
+    }
+    if(m_iStation >= m_pXmlParse->m_stPostionTempMap.size())
+        m_iStation = 0;
+    memset(&m_stStation,0,sizeof(m_stStation));
+    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
+    ParamShowReflesh(m_stStation);
+}
+//转跳上一条线路
+void CMapLinePos::on_click_Show_prev_Line_slot()
+{
+
 }
 
 //添加新站点
@@ -369,6 +417,11 @@ void CMapLinePos::XMLShowInit()
     m_Next_Elem_Btn->setText("下一个站点");
     m_Prev_Elem_Btn = new QPushButton(this);
     m_Prev_Elem_Btn->setText("上一个站点");
+    m_Prev_Line_Bit = new QPushButton(this);
+    m_Prev_Line_Bit->setText("上一条线路");
+    m_Next_Line_Bit = new QPushButton(this);
+    m_Next_Line_Bit->setText("下一条线路");
+
     m_CreateNewNode_Btn = new QPushButton(this);
     m_CreateNewNode_Btn->setText("添加新站点");
     m_CreateNewXml_Btn = new QPushButton(this);
@@ -376,9 +429,12 @@ void CMapLinePos::XMLShowInit()
 
     m_Multiple_RadioBtn = new QRadioButton(this);
     m_Multiple_label = new QLabel(this);
-    m_Multiple_label->setText("生成坐标倍数:");
+    m_Multiple_label->setText("大图生成坐标倍数:");
     m_Multiple = new QLineEdit(this);
 
+    m_SaveLocation_CheckBox = new QCheckBox(this);
+    m_SaveLocation_label = new QLabel(this);
+    m_SaveLocation_label->setText("中文和英文坐标是否一样");
     m_iStation = 0;
 
 }
@@ -416,11 +472,15 @@ void CMapLinePos::HideWidgets()
 
     m_Next_Elem_Btn->hide();
     m_Prev_Elem_Btn->hide();
+    m_Prev_Line_Bit->hide();
+    m_Next_Line_Bit->hide();
     m_CreateNewXml_Btn->hide();
     m_CreateNewNode_Btn->hide();
 
     m_Multiple_label->hide();
     m_Multiple->hide();
+    m_SaveLocation_CheckBox->hide();
+    m_SaveLocation_label->hide();
 }
 //展示某些控件
 void CMapLinePos::ShowWidgets(int Width,int Height)
@@ -494,7 +554,12 @@ void CMapLinePos::ShowWidgets(int Width,int Height)
     m_Prev_Elem_Btn->show();
     m_Next_Elem_Btn->setGeometry(Width + 105,iHeight,100,30);
     m_Next_Elem_Btn->show();
-    iHeight+=60;
+    iHeight+=30;
+    m_Prev_Line_Bit->setGeometry(Width,iHeight,100,30);
+    m_Prev_Line_Bit->show();
+    m_Next_Line_Bit->setGeometry(Width+105,iHeight,100,30);
+    m_Next_Line_Bit->show();
+    iHeight+=30;
     m_CreateNewNode_Btn->setGeometry(Width,iHeight,100,30);
     m_CreateNewNode_Btn->show();
     m_CreateNewXml_Btn->setGeometry(Width + 105,iHeight,100,30);
@@ -505,6 +570,11 @@ void CMapLinePos::ShowWidgets(int Width,int Height)
     m_Multiple_RadioBtn->setGeometry(Width+100,iHeight,30,30);
     m_Multiple->setGeometry(Width+130,iHeight,50,30);
 
+    iHeight+=30;
+    m_SaveLocation_CheckBox->setGeometry(Width,iHeight,30,30);
+    m_SaveLocation_CheckBox->show();
+    m_SaveLocation_label->setGeometry(Width+30,iHeight,200,30);
+    m_SaveLocation_label->show();
     ParamShowReflesh(m_stStation);
 }
 
@@ -538,12 +608,15 @@ CMapLinePos::~CMapLinePos()
     delete m_pXmlParse;
     delete m_Prev_Elem_Btn;
     delete m_Next_Elem_Btn;
+    delete m_Next_Line_Bit;
+    delete m_Prev_Line_Bit;
     delete m_CreateNewNode_Btn;
     delete m_CreateNewXml_Btn;
     delete m_Multiple_RadioBtn;
     delete m_Multiple_label;
     delete m_Multiple;
-
+    delete m_SaveLocation_CheckBox;
+    delete m_SaveLocation_label;
 }
 
 

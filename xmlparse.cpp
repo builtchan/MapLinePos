@@ -1,4 +1,4 @@
-#include "xmlparse.h"
+﻿#include "xmlparse.h"
 
 CMyXmlParse::CMyXmlParse()
 {
@@ -8,15 +8,16 @@ CMyXmlParse::CMyXmlParse()
 
 int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
 {
+    qDebug() << pzFileName;
     if(NULL == pzFileName)
-      return -1;
+        return -1;
 
     //1、打开xml文件
     QFile file(pzFileName);
     if(!file.open(QFile::ReadOnly | QFile::Text))
     {
-      qDebug() << "open xml file failed";
-      return 1;
+        qDebug() << "open xml file failed";
+        return 1;
     }
 
     //2、将text文件以utf-8转成流数据
@@ -29,8 +30,8 @@ int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
     Domc.setContent(string);
     if(Domc.isNull() || file.size() <= 0)
     {
-       qDebug() << "The xml file is Empty";
-       return 2;
+        qDebug() << "The xml file is Empty";
+        return 2;
     }
 
     //根节点LineMap
@@ -45,52 +46,55 @@ int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
     int iCount = 0;
     while(!Position.isNull())
     {
-      if(Position.hasAttribute("text_chs"))
-        strcpy(stPositon.text_chs,Position.attributeNode("text_chs").value().toStdString().c_str());
-      if(Position.hasAttribute("text_en"))
-        strcpy(stPositon.text_en,Position.attributeNode("text_en").value().toStdString().c_str());
-      if(Position.hasAttribute("id"))
-        strcpy(stPositon.id,Position.attributeNode("id").value().toStdString().c_str());
-      if(Position.hasAttribute("stationId"))
-        strcpy(stPositon.stationId,Position.attributeNode("stationId").value().toStdString().c_str());
-      if(Position.hasAttribute("lineId"))
-        strcpy(stPositon.lineid,Position.attributeNode("lineId").value().toStdString().c_str());
+        if(Position.hasAttribute("text_chs"))
+            strcpy(stPositon.text_chs,Position.attributeNode("text_chs").value().toStdString().c_str());
+        if(Position.hasAttribute("text_en"))
+            strcpy(stPositon.text_en,Position.attributeNode("text_en").value().toStdString().c_str());
+        if(Position.hasAttribute("id"))
+            strcpy(stPositon.id,Position.attributeNode("id").value().toStdString().c_str());
+        if(Position.hasAttribute("stationId"))
+            strcpy(stPositon.stationId,Position.attributeNode("stationId").value().toStdString().c_str());
+        if(Position.hasAttribute("lineId"))
+            strcpy(stPositon.lineid,Position.attributeNode("lineId").value().toStdString().c_str());
 
-      if(Position.hasAttribute("coords_chs"))
-      {
-        QString pos = Position.attributeNode("coords_chs").value();
-        QStringList poslist = pos.split(",");
-        stPositon.coords_chs.Top_x = poslist.at(0).toInt(&ok,10);
-        stPositon.coords_chs.Top_y = poslist.at(1).toInt(&ok,10);
-        stPositon.coords_chs.Under_x = poslist.at(2).toInt(&ok,10);
-        stPositon.coords_chs.Under_y = poslist.at(3).toInt(&ok,10);
-      }
-      if(Position.hasAttribute("coords_en"))
-      {
-        QString pos = Position.attributeNode("coords_en").value();
-        QStringList poslist = pos.split(",");
-        stPositon.coords_en.Top_x = poslist.at(0).toInt(&ok,10);
-        stPositon.coords_en.Top_y = poslist.at(1).toInt(&ok,10);
-        stPositon.coords_en.Under_x = poslist.at(2).toInt(&ok,10);
-        stPositon.coords_en.Under_y = poslist.at(3).toInt(&ok,10);
-      }
-      //下一个元素
-      Position = Position.nextSiblingElement();
-      //将解析到的内容加到列表里
-      m_stPostionMap.insert(iCount,stPositon);
-      m_stPostionTempMap.insert(iCount++,stPositon);
+        if(Position.hasAttribute("coords_chs"))
+        {
+            QString pos = Position.attributeNode("coords_chs").value();
+            QStringList poslist = pos.split(",");
+            stPositon.coords_chs.Top_x = poslist.at(0).toInt(&ok,10);
+            stPositon.coords_chs.Top_y = poslist.at(1).toInt(&ok,10);
+            stPositon.coords_chs.Under_x = poslist.at(2).toInt(&ok,10);
+            stPositon.coords_chs.Under_y = poslist.at(3).toInt(&ok,10);
+        }
+        if(Position.hasAttribute("coords_en"))
+        {
+            QString pos = Position.attributeNode("coords_en").value();
+            QStringList poslist = pos.split(",");
+            stPositon.coords_en.Top_x = poslist.at(0).toInt(&ok,10);
+            stPositon.coords_en.Top_y = poslist.at(1).toInt(&ok,10);
+            stPositon.coords_en.Under_x = poslist.at(2).toInt(&ok,10);
+            stPositon.coords_en.Under_y = poslist.at(3).toInt(&ok,10);
+        }
+        //下一个元素
+        Position = Position.nextSiblingElement();
+        //将解析到的内容加到列表里
+        m_stPostionMap.insert(iCount,stPositon);
+        m_stPostionTempMap.insert(iCount++,stPositon);
     }
-  file.close();
+    file.close();
+    return 0;
 }
 //刷新参数Map表
 int CMyXmlParse::RefleshParamMap(int iKey,ST_MAP_LINE_POSITION stPosition)
 {
   m_stPostionTempMap[iKey] = stPosition;
+  return 0;
 }
 //添加新站点
 int CMyXmlParse::AddNewNode(int iKey,ST_MAP_LINE_POSITION stPosition)
 {
     m_stPostionTempMap.insert(iKey,stPosition);
+    return 0;
 }
 
 //重新生成MapLineConfig文件
@@ -129,10 +133,21 @@ int CMyXmlParse::RewriteXml(const char *pzPath,const char*pNewFilename,float fMu
     position.setAttribute("id",QString("%1").arg(stPosition.id));
     position.setAttribute("lineId",QString("%1").arg(stPosition.lineid));
 
-    QString ChsPos = QString("%1,%2,%3,%4").arg((int)(stPosition.coords_chs.Top_x * fMultiple)).arg((int)(stPosition.coords_chs.Top_y * fMultiple)).arg((int)(stPosition.coords_chs.Under_x * fMultiple)).arg((int)(stPosition.coords_chs.Under_y * fMultiple));
-    position.setAttribute("coords_chs",ChsPos);
-    QString EngPos = QString("%1,%2,%3,%4").arg((int)(stPosition.coords_en.Top_x * fMultiple)).arg((int)(stPosition.coords_en.Top_y *fMultiple)).arg((int)(stPosition.coords_en.Under_x * fMultiple)).arg((int)(stPosition.coords_en.Under_y * fMultiple));
-    position.setAttribute("coords_en",EngPos);
+    //big pictrue need Multiple
+    if(0 == stPosition.lineid)
+    {
+        QString ChsPos = QString("%1,%2,%3,%4").arg((int)(stPosition.coords_chs.Top_x * fMultiple)).arg((int)(stPosition.coords_chs.Top_y * fMultiple)).arg((int)(stPosition.coords_chs.Under_x * fMultiple)).arg((int)(stPosition.coords_chs.Under_y * fMultiple));
+        position.setAttribute("coords_chs",ChsPos);
+        QString EngPos = QString("%1,%2,%3,%4").arg((int)(stPosition.coords_en.Top_x * fMultiple)).arg((int)(stPosition.coords_en.Top_y *fMultiple)).arg((int)(stPosition.coords_en.Under_x * fMultiple)).arg((int)(stPosition.coords_en.Under_y * fMultiple));
+        position.setAttribute("coords_en",EngPos);
+    }
+    else
+    {
+        QString ChsPos = QString("%1,%2,%3,%4").arg(stPosition.coords_chs.Top_x).arg(stPosition.coords_chs.Top_y).arg(stPosition.coords_chs.Under_x).arg(stPosition.coords_chs.Under_y);
+        position.setAttribute("coords_chs",ChsPos);
+        QString EngPos = QString("%1,%2,%3,%4").arg(stPosition.coords_en.Top_x).arg(stPosition.coords_en.Top_y).arg(stPosition.coords_en.Under_x).arg(stPosition.coords_en.Under_y);
+        position.setAttribute("coords_en",EngPos);
+    }
 
     root_elem.appendChild(position);
   }
