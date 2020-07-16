@@ -1,8 +1,19 @@
 ﻿#include "mapLinePos.h"
 #include <QCoreApplication>
+#include <QDesktopWidget>
+#include <QRect>
+#include <QApplication>
+#include <QStringLiteral>
+#pragma execution_character_set("utf-8")
 CMapLinePos::CMapLinePos(QWidget *parent)
     : QWidget(parent)
 {
+    m_iAvailableWidth = QApplication::desktop()->availableGeometry().width();
+    m_iAvailableHeigth = QApplication::desktop()->availableGeometry().height();
+//    qDebug() << QApplication::desktop()->screenGeometry().width();
+//    qDebug() << QApplication::desktop()->screenGeometry().height();
+    m_iPic_Width = m_iAvailableWidth - 400;
+    m_iPic_Height = m_iAvailableHeigth - 200;
     Init();
     XMLShowInit();
     HideWidgets();
@@ -18,7 +29,7 @@ CMapLinePos::CMapLinePos(QWidget *parent)
     QObject::connect(m_Next_Line_Bit,SIGNAL(clicked()),this,SLOT(on_click_Show_next_Line_slot()));
     QObject::connect(m_CreateNewNode_Btn,SIGNAL(clicked()),this,SLOT(on_click_AddNewNode_slot()));
     QObject::connect(m_CreateNewXml_Btn,SIGNAL(clicked()),this,SLOT(on_click_CreateNewXml_slot()));
-    QObject::connect(m_Multiple_RadioBtn,SIGNAL(clicked()),this,SLOT(Choice_Use_Multiple_slot()));
+//    QObject::connect(m_Multiple_RadioBtn,SIGNAL(clicked()),this,SLOT(Choice_Use_Multiple_slot()));
 
     QObject::connect(m_text_chs_edit,SIGNAL(editingFinished()),this,SLOT(Edit_changed_slot()));
     QObject::connect(m_text_en_edit,SIGNAL(editingFinished()),this,SLOT(Edit_changed_slot()));
@@ -84,18 +95,18 @@ void CMapLinePos::mousePressEvent(QMouseEvent *e)
     //qDebug() << pt.x()<< pt.y();
     if(m_bIsChinese)
     {
-        m_stStation.coords_chs.Top_x = pt.x();
-        m_stStation.coords_chs.Top_y = pt.y();
-        if(m_SaveLocation_CheckBox->isChecked())
+        m_stStation.coords_chs.Top_x = pt.x() * m_fWidthMutiple;
+        m_stStation.coords_chs.Top_y = pt.y() * m_fHeigthMutiple;
+        if(m_SameLocation_CheckBox->isChecked())
         {
-            m_stStation.coords_en.Top_x = pt.x();
-            m_stStation.coords_en.Top_y = pt.y();
+            m_stStation.coords_en.Top_x = pt.x() * m_fWidthMutiple;
+            m_stStation.coords_en.Top_y = pt.y() * m_fHeigthMutiple;
         }
     }
     else
     {
-        m_stStation.coords_en.Top_x = pt.x();
-        m_stStation.coords_en.Top_y = pt.y();
+        m_stStation.coords_en.Top_x = pt.x() * m_fWidthMutiple;
+        m_stStation.coords_en.Top_y = pt.y() * m_fHeigthMutiple;
     }
     m_pXmlParse->RefleshParamMap(m_iStation,m_stStation);
     ParamShowReflesh(m_stStation);
@@ -108,18 +119,18 @@ void CMapLinePos::mouseReleaseEvent(QMouseEvent *e)
     //qDebug() << pt.x()<< pt.y();
     if(m_bIsChinese)
     {
-        m_stStation.coords_chs.Under_x = pt.x();
-        m_stStation.coords_chs.Under_y = pt.y();
-        if(m_SaveLocation_CheckBox->isChecked())
+        m_stStation.coords_chs.Under_x = pt.x() * m_fWidthMutiple;
+        m_stStation.coords_chs.Under_y = pt.y() * m_fHeigthMutiple;
+        if(m_SameLocation_CheckBox->isChecked())
         {
-            m_stStation.coords_en.Under_x = pt.x();
-            m_stStation.coords_en.Under_y = pt.y();
+            m_stStation.coords_en.Under_x = pt.x() * m_fWidthMutiple;
+            m_stStation.coords_en.Under_y = pt.y() * m_fHeigthMutiple;
         }
     }
     else
     {
-        m_stStation.coords_en.Under_x = pt.x();
-        m_stStation.coords_en.Under_y = pt.y();
+        m_stStation.coords_en.Under_x = pt.x() * m_fWidthMutiple;
+        m_stStation.coords_en.Under_y = pt.y() * m_fHeigthMutiple;
     }
     m_pXmlParse->RefleshParamMap(m_iStation,m_stStation);
     ParamShowReflesh(m_stStation);
@@ -149,11 +160,36 @@ void CMapLinePos::on_click_Show_Prev_slot()
     m_bIsChinese = !strstr(PicturePath.toStdString().c_str(),"_en");
     QPixmap map(PicturePath);
     QImage image(PicturePath);
-    m_iPic_Width = image.width();
-    m_iPic_Height = image.height();
-    m_PictureLabel->setGeometry(0,0,image.width(),image.height());
+
+    if(image.width() > (m_iAvailableWidth - 400))
+    {
+        m_fWidthMutiple = image.width() / m_iPic_Width;
+        m_iSetPicWidth = m_iPic_Width;
+    }
+    else
+    {
+        m_iSetPicWidth = image.width();
+        m_fWidthMutiple = 1.00;
+    }
+
+    if(image.height() > m_iAvailableHeigth)
+    {
+        m_fHeigthMutiple = image.height() / m_iPic_Height;
+        m_iSetPicHeigth = m_iPic_Height;
+    }
+    else
+    {
+        m_iSetPicHeigth = image.height();
+        m_fHeigthMutiple = 1.00;
+    }
+
+    qDebug() << "width()" << image.width() <<  "height()" << image.height();
+    qDebug() << m_iSetPicWidth << m_iSetPicHeigth;
+
+    m_PictureLabel->setGeometry(0,0,m_iSetPicWidth,m_iSetPicHeigth);
     m_PictureLabel->setPixmap(map);
     m_PictureLabel->setScaledContents(true);
+    ShowWidgets(m_iSetPicWidth,m_iSetPicHeigth);
 }
 
 //下一张图片相关处理
@@ -167,11 +203,36 @@ void CMapLinePos::on_click_Show_Next_slot()
     m_bIsChinese = !strstr(PicturePath.toStdString().c_str(),"_en");
     QPixmap map(PicturePath);
     QImage image(PicturePath);
-    m_iPic_Width = image.width();
-    m_iPic_Height = image.height();
-    m_PictureLabel->setGeometry(0,0,image.width(),image.height());
+
+    if(image.width() > (m_iAvailableWidth - 400))
+    {
+        m_fWidthMutiple = image.width() / m_iPic_Width;
+        m_iSetPicWidth = m_iPic_Width;
+    }
+    else
+    {
+        m_iSetPicWidth = image.width();
+        m_fWidthMutiple = 1.00;
+    }
+
+    if(image.height() > m_iAvailableHeigth)
+    {
+        m_fHeigthMutiple = image.height() / m_iPic_Height;
+        m_iSetPicHeigth = m_iPic_Height;
+    }
+    else
+    {
+        m_iSetPicHeigth = image.height();
+        m_fHeigthMutiple = 1.00;
+    }
+
+    qDebug() << "width()" << image.width() <<  "height()" << image.height();
+    qDebug() << m_iSetPicWidth << m_iSetPicHeigth;
+
+    m_PictureLabel->setGeometry(0,0,m_iSetPicWidth,m_iSetPicHeigth);
     m_PictureLabel->setPixmap(map);
     m_PictureLabel->setScaledContents(true);
+    ShowWidgets(m_iSetPicWidth,m_iSetPicHeigth);
 }
 
 //获取文件夹路径
@@ -205,9 +266,16 @@ void CMapLinePos::on_click_OpenSlot()
         return;
     }
 
-    QDir dir(m_Path_Test->text()+ "/");
+#ifdef WIN32
+    if(!m_Path_Test->text().right(1).contains("\\"))
+        m_Path_Test->setText(m_Path_Test->text() + "\\");
+#elif
+    if(!m_Path_Test->text().right(1).contains("/"))
+        m_Path_Test->setText(m_Path_Test->text() + "/");
+#endif
+    QDir dir(m_Path_Test->text());
     QStringList names;
-    names <<"*.**g" ;
+    names <<"*.jpg" << "*.png" << "*.bmp" ;
     m_Picture_list = dir.entryList(names,QDir::NoFilter,QDir::Name);
     if(m_Picture_list.isEmpty())
     {
@@ -249,27 +317,52 @@ void CMapLinePos::on_click_OpenSlot()
     m_bIsChinese = !strstr(PicturePath.toStdString().c_str(),"_en");
     QPixmap map(PicturePath);
     QImage image(PicturePath);
-    m_iPic_Width = image.width();
-    m_iPic_Height = image.height();
-    m_PictureLabel->setGeometry(0,0,image.width(),image.height());
+    if(0 == image.width() || 0 == image.height())
+    {
+        m_WarningMessage->setText(PicturePath + "的后缀格式和图片格式不匹配");
+        m_WarningMessage->show();
+        return;
+    }
+    if(image.width() > (m_iAvailableWidth - 400))
+    {
+        m_fWidthMutiple = image.width() / m_iPic_Width;
+        m_iSetPicWidth = m_iPic_Width;
+    }
+    else
+    {
+        m_iSetPicWidth = image.width();
+        m_fWidthMutiple = 1.00;
+    }
+
+    if(image.height() > m_iAvailableHeigth)
+    {
+        m_fHeigthMutiple = image.height() / m_iPic_Height;
+        m_iSetPicHeigth = m_iPic_Height;
+    }
+    else
+    {
+        m_iSetPicHeigth = image.height();
+        m_fHeigthMutiple = 1.00;
+    }
+
+    qDebug() << "width()" << image.width() <<  "height()" << image.height();
+    qDebug() << m_iSetPicWidth << m_iSetPicHeigth;
+
+    m_PictureLabel->setGeometry(0,0,m_iSetPicWidth,m_iSetPicHeigth);
+
     m_PictureLabel->setPixmap(map);
     m_PictureLabel->setScaledContents(true);
     m_PictureLabel->show();
 
-    //窗口大小
-    m_mywidget->setGeometry(50,50,image.width()+400,image.height());
-    //m_mywidget->showMaximized();
-
-    m_Prev_pict_btn->setGeometry(image.width(),0,100,30);
-    m_Prev_pict_btn->show();
-    m_Next_pict_btn->setGeometry(image.width()+105,0,100,30);
-    m_Next_pict_btn->show();
-
-
     m_Open_Btn->hide();
     m_Path_Btn->hide();
     m_Path_Test->hide();
-    ShowWidgets(image.width(),image.height());
+    ShowWidgets(m_iSetPicWidth,m_iSetPicHeigth);
+
+    QMap<int,ST_MAP_LINE_POSITION>::iterator it = m_pXmlParse->m_stPostionMap.find(0);
+    memset(&m_stStation,0,sizeof(m_stStation));
+    memcpy(&m_stStation,&(it.value()),sizeof(ST_MAP_LINE_POSITION));
+    ParamShowReflesh(m_stStation);
 }
 
 //上一个站点参数显示处理
@@ -330,19 +423,19 @@ void CMapLinePos::on_click_AddNewNode_slot()
 //选择生成坐标倍数生效
 void CMapLinePos::Choice_Use_Multiple_slot()
 {
-    if(m_Multiple_RadioBtn->isChecked())
-        m_Multiple->show();
-    else
-        m_Multiple->hide();
+//    if(m_Multiple_RadioBtn->isChecked())
+//        m_Multiple->show();
+//    else
+//        m_Multiple->hide();
 }
 
 //生成新站点参数
 void CMapLinePos::on_click_CreateNewXml_slot()
 {
-    bool bOk = 0;
-    if(m_Multiple_RadioBtn->isChecked())
-        m_pXmlParse->RewriteXml(m_Path_Test->text().toStdString().c_str(),NULL,m_Multiple->text().toFloat(&bOk));
-    else
+//    bool bOk = 0;
+//    if(m_Multiple_RadioBtn->isChecked())
+//        m_pXmlParse->RewriteXml(m_Path_Test->text().toStdString().c_str(),NULL,m_Multiple->text().toFloat(&bOk));
+//    else
         m_pXmlParse->RewriteXml(m_Path_Test->text().toStdString().c_str(),NULL,1);
 
 }
@@ -427,14 +520,14 @@ void CMapLinePos::XMLShowInit()
     m_CreateNewXml_Btn = new QPushButton(this);
     m_CreateNewXml_Btn->setText("生成新XML");
 
-    m_Multiple_RadioBtn = new QRadioButton(this);
-    m_Multiple_label = new QLabel(this);
-    m_Multiple_label->setText("大图生成坐标倍数:");
-    m_Multiple = new QLineEdit(this);
+//    m_Multiple_RadioBtn = new QRadioButton(this);
+//    m_Multiple_label = new QLabel(this);
+//    m_Multiple_label->setText("大图生成坐标倍数:");
+//    m_Multiple = new QLineEdit(this);
 
-    m_SaveLocation_CheckBox = new QCheckBox(this);
-    m_SaveLocation_label = new QLabel(this);
-    m_SaveLocation_label->setText("中文和英文坐标是否一样");
+    m_SameLocation_CheckBox = new QCheckBox(this);
+    m_SameLocation_label = new QLabel(this);
+    m_SameLocation_label->setText("中文和英文坐标是否一样");
     m_iStation = 0;
 
 }
@@ -477,17 +570,21 @@ void CMapLinePos::HideWidgets()
     m_CreateNewXml_Btn->hide();
     m_CreateNewNode_Btn->hide();
 
-    m_Multiple_label->hide();
-    m_Multiple->hide();
-    m_SaveLocation_CheckBox->hide();
-    m_SaveLocation_label->hide();
+//    m_Multiple_label->hide();
+//    m_Multiple->hide();
+    m_SameLocation_CheckBox->hide();
+    m_SameLocation_label->hide();
 }
 //展示某些控件
 void CMapLinePos::ShowWidgets(int Width,int Height)
 {
-    QMap<int,ST_MAP_LINE_POSITION>::iterator it = m_pXmlParse->m_stPostionMap.find(0);
-    memset(&m_stStation,0,sizeof(m_stStation));
-    memcpy(&m_stStation,&(it.value()),sizeof(ST_MAP_LINE_POSITION));
+    //窗口大小
+    m_mywidget->setGeometry(50,50,m_iSetPicWidth+400,m_iSetPicHeigth);
+
+    m_Prev_pict_btn->setGeometry(Width,0,100,30);
+    m_Prev_pict_btn->show();
+    m_Next_pict_btn->setGeometry(Width+105,0,100,30);
+    m_Next_pict_btn->show();
 
     int iHeight = 30;
     //中文站点名
@@ -564,18 +661,17 @@ void CMapLinePos::ShowWidgets(int Width,int Height)
     m_CreateNewNode_Btn->show();
     m_CreateNewXml_Btn->setGeometry(Width + 105,iHeight,100,30);
     m_CreateNewXml_Btn->show();
-    iHeight+=30;
-    m_Multiple_label->setGeometry(Width,iHeight,100,30);
-    m_Multiple_label->show();
-    m_Multiple_RadioBtn->setGeometry(Width+100,iHeight,30,30);
-    m_Multiple->setGeometry(Width+130,iHeight,50,30);
+//    iHeight+=30;
+//    m_Multiple_label->setGeometry(Width,iHeight,100,30);
+//    m_Multiple_label->show();
+//    m_Multiple_RadioBtn->setGeometry(Width+100,iHeight,30,30);
+//    m_Multiple->setGeometry(Width+130,iHeight,50,30);
 
     iHeight+=30;
-    m_SaveLocation_CheckBox->setGeometry(Width,iHeight,30,30);
-    m_SaveLocation_CheckBox->show();
-    m_SaveLocation_label->setGeometry(Width+30,iHeight,200,30);
-    m_SaveLocation_label->show();
-    ParamShowReflesh(m_stStation);
+    m_SameLocation_CheckBox->setGeometry(Width,iHeight,30,30);
+    m_SameLocation_CheckBox->show();
+    m_SameLocation_label->setGeometry(Width+30,iHeight,200,30);
+    m_SameLocation_label->show();
 }
 
 CMapLinePos::~CMapLinePos()
@@ -612,11 +708,11 @@ CMapLinePos::~CMapLinePos()
     delete m_Prev_Line_Bit;
     delete m_CreateNewNode_Btn;
     delete m_CreateNewXml_Btn;
-    delete m_Multiple_RadioBtn;
-    delete m_Multiple_label;
-    delete m_Multiple;
-    delete m_SaveLocation_CheckBox;
-    delete m_SaveLocation_label;
+//    delete m_Multiple_RadioBtn;
+//    delete m_Multiple_label;
+//    delete m_Multiple;
+    delete m_SameLocation_CheckBox;
+    delete m_SameLocation_label;
 }
 
 

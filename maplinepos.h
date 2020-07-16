@@ -43,8 +43,14 @@ private:
 
     int m_iIndex;                   //当前图片索引
     bool m_bIsChinese;              //当前图片是否是中文
-    int m_iPic_Width;
-    int m_iPic_Height;
+    int m_iAvailableWidth;          //当前屏幕可用长
+    int m_iAvailableHeigth;         //当前屏幕可用宽
+    float m_iPic_Width;
+    float m_iPic_Height;
+    float m_fWidthMutiple;          //图片长放缩倍数
+    float m_fHeigthMutiple;         //图片宽放缩倍数
+    int m_iSetPicWidth;             //图片应设置长
+    int m_iSetPicHeigth;            //图片应设置宽
 
 //站点相关
 private:
@@ -86,8 +92,8 @@ private:
     QLabel *m_Multiple_label;           //倍数
     QLineEdit *m_Multiple;
 
-    QCheckBox *m_SaveLocation_CheckBox;  //
-    QLabel *m_SaveLocation_label;           //
+    QCheckBox *m_SameLocation_CheckBox;  //
+    QLabel *m_SameLocation_label;           //
 
 
 public:

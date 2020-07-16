@@ -1,5 +1,8 @@
-﻿#include "xmlparse.h"
+﻿
 
+#include "xmlparse.h"
+
+#pragma execution_character_set("utf-8")
 CMyXmlParse::CMyXmlParse()
 {
   iNum = 1;
@@ -16,7 +19,7 @@ int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
     QFile file(pzFileName);
     if(!file.open(QFile::ReadOnly | QFile::Text))
     {
-        qDebug() << "open xml file failed";
+        qDebug() << "open xml file failed" << pzFileName;
         return 1;
     }
 
@@ -57,9 +60,11 @@ int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
         if(Position.hasAttribute("lineId"))
             strcpy(stPositon.lineid,Position.attributeNode("lineId").value().toStdString().c_str());
 
+        qDebug() << stPositon.id << stPositon.stationId << stPositon.lineid << stPositon.text_en;
         if(Position.hasAttribute("coords_chs"))
         {
             QString pos = Position.attributeNode("coords_chs").value();
+             qDebug() <<pos;
             QStringList poslist = pos.split(",");
             stPositon.coords_chs.Top_x = poslist.at(0).toInt(&ok,10);
             stPositon.coords_chs.Top_y = poslist.at(1).toInt(&ok,10);
@@ -69,6 +74,7 @@ int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
         if(Position.hasAttribute("coords_en"))
         {
             QString pos = Position.attributeNode("coords_en").value();
+            qDebug() <<pos;
             QStringList poslist = pos.split(",");
             stPositon.coords_en.Top_x = poslist.at(0).toInt(&ok,10);
             stPositon.coords_en.Top_y = poslist.at(1).toInt(&ok,10);
@@ -170,7 +176,7 @@ int CMyXmlParse::LineStationParse(const char *pzFileName)
     QFile file(pzFileName);
     if(!file.open(QFile::ReadOnly | QFile::Text))
     {
-      qDebug() << "open xml file failed";
+      qDebug() << "open xml file failed" << pzFileName;
       return 1;
     }
 
