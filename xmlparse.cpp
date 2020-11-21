@@ -66,20 +66,40 @@ int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
             QString pos = Position.attributeNode("coords_chs").value();
              qDebug() <<pos;
             QStringList poslist = pos.split(",");
-            stPositon.coords_chs.Top_x = poslist.at(0).toInt(&ok,10);
-            stPositon.coords_chs.Top_y = poslist.at(1).toInt(&ok,10);
-            stPositon.coords_chs.Under_x = poslist.at(2).toInt(&ok,10);
-            stPositon.coords_chs.Under_y = poslist.at(3).toInt(&ok,10);
+            if(4 == poslist.size())
+            {
+                stPositon.coords_chs.Top_x = poslist.at(0).toInt(&ok,10);
+                stPositon.coords_chs.Top_y = poslist.at(1).toInt(&ok,10);
+                stPositon.coords_chs.Under_x = poslist.at(2).toInt(&ok,10);
+                stPositon.coords_chs.Under_y = poslist.at(3).toInt(&ok,10);
+            }
+            else
+            {
+                stPositon.coords_chs.Top_x = 0;
+                stPositon.coords_chs.Top_y = 0;
+                stPositon.coords_chs.Under_x = 0;
+                stPositon.coords_chs.Under_y = 0;
+            }
         }
         if(Position.hasAttribute("coords_en"))
         {
             QString pos = Position.attributeNode("coords_en").value();
             qDebug() <<pos;
             QStringList poslist = pos.split(",");
-            stPositon.coords_en.Top_x = poslist.at(0).toInt(&ok,10);
-            stPositon.coords_en.Top_y = poslist.at(1).toInt(&ok,10);
-            stPositon.coords_en.Under_x = poslist.at(2).toInt(&ok,10);
-            stPositon.coords_en.Under_y = poslist.at(3).toInt(&ok,10);
+            if(4 == poslist.size())
+            {
+                stPositon.coords_en.Top_x = poslist.at(0).toInt(&ok,10);
+                stPositon.coords_en.Top_y = poslist.at(1).toInt(&ok,10);
+                stPositon.coords_en.Under_x = poslist.at(2).toInt(&ok,10);
+                stPositon.coords_en.Under_y = poslist.at(3).toInt(&ok,10);
+            }
+            else
+            {
+                stPositon.coords_en.Top_x = 0;
+                stPositon.coords_en.Top_y = 0;
+                stPositon.coords_en.Under_x = 0;
+                stPositon.coords_en.Under_y = 0;
+            }
         }
         //下一个元素
         Position = Position.nextSiblingElement();
