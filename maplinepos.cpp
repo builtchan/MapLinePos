@@ -8,16 +8,17 @@
 CMapLinePos::CMapLinePos(QWidget *parent)
     : QWidget(parent)
 {
+    setWindowTitle("V1.1");
     m_iAvailableWidth = QApplication::desktop()->availableGeometry().width();
     m_iAvailableHeigth = QApplication::desktop()->availableGeometry().height();
 //    qDebug() << QApplication::desktop()->screenGeometry().width();
 //    qDebug() << QApplication::desktop()->screenGeometry().height();
     m_iPic_Width = m_iAvailableWidth - 400;
     m_iPic_Height = m_iAvailableHeigth - 200;
+    m_pXmlParse = new CMyXmlParse();
     Init();
     XMLShowInit();
     HideWidgets();
-    m_pXmlParse = new CMyXmlParse();
 
     QObject::connect(m_Open_Btn,SIGNAL(clicked()),this,SLOT(on_click_OpenSlot()));
     QObject::connect(m_Path_Btn,SIGNAL(clicked()),this,SLOT(on_click_GetFilePath_slot()));
@@ -80,65 +81,109 @@ void CMapLinePos::Init()
 #endif
     m_Path_Test->setText(strPath);
     //线路图片展示
-    m_PictureLabel = new QLabel(this);
+    m_PictureLabel = new CMyLabel(this);
     m_PictureLabel->hide();
+    connect(m_PictureLabel,SIGNAL(touchRectPos(int ,int,int ,int )),this,SLOT(touchRectPos(int ,int,int ,int )));
+
     //提示框
     m_WarningMessage = new QMessageBox(this);
     m_WarningMessage->hide();
 }
 
-void CMapLinePos::mousePressEvent(QMouseEvent *e)
+//void CMapLinePos::mousePressEvent(QMouseEvent *e)
+//{
+//    QPoint pt = e->pos();
+//    if(pt.x() > m_iSetPicWidth || pt.y() > m_iSetPicHeigth)
+//        return;
+//    //qDebug() << pt.x()<< pt.y();
+//    if(m_bIsChinese)
+//    {
+//        m_stStation.coords_chs.Top_x = pt.x() * m_fWidthMutiple;
+//        m_stStation.coords_chs.Top_y = pt.y() * m_fHeigthMutiple;
+//        if(m_SameLocation_CheckBox->isChecked())
+//        {
+//            m_stStation.coords_en.Top_x = pt.x() * m_fWidthMutiple;
+//            m_stStation.coords_en.Top_y = pt.y() * m_fHeigthMutiple;
+//        }
+//    }
+//    else
+//    {
+//        m_stStation.coords_en.Top_x = pt.x() * m_fWidthMutiple;
+//        m_stStation.coords_en.Top_y = pt.y() * m_fHeigthMutiple;
+//    }
+//    m_pXmlParse->RefleshParamMap(m_iStation,m_stStation);
+//    ParamShowReflesh(m_stStation);
+//}
+
+//void CMapLinePos::mouseReleaseEvent(QMouseEvent *e)
+//{
+//    QPoint pt = e->pos();
+//    if(pt.x() > m_iSetPicWidth || pt.y() > m_iSetPicHeigth)
+//        return;
+//    //qDebug() << pt.x()<< pt.y();
+//    if(m_bIsChinese)
+//    {
+//        m_stStation.coords_chs.Under_x = pt.x() * m_fWidthMutiple;
+//        m_stStation.coords_chs.Under_y = pt.y() * m_fHeigthMutiple;
+//        if(m_SameLocation_CheckBox->isChecked())
+//        {
+//            m_stStation.coords_en.Under_x = pt.x() * m_fWidthMutiple;
+//            m_stStation.coords_en.Under_y = pt.y() * m_fHeigthMutiple;
+//        }
+//    }
+//    else
+//    {
+//        m_stStation.coords_en.Under_x = pt.x() * m_fWidthMutiple;
+//        m_stStation.coords_en.Under_y = pt.y() * m_fHeigthMutiple;
+//    }
+//    m_pXmlParse->RefleshParamMap(m_iStation,m_stStation);
+//    ParamShowReflesh(m_stStation);
+//}
+void CMapLinePos::touchRectPos(int iTopX,int iTopY,int iUnderX,int iUnderY)
 {
-    QPoint pt = e->pos();
-    if(pt.x() > m_iPic_Width || pt.y() > m_iPic_Height)
-        return;
-    //qDebug() << pt.x()<< pt.y();
     if(m_bIsChinese)
     {
-        m_stStation.coords_chs.Top_x = pt.x() * m_fWidthMutiple;
-        m_stStation.coords_chs.Top_y = pt.y() * m_fHeigthMutiple;
+        m_stStation.coords_chs.Top_x = iTopX * m_fWidthMutiple;
+        m_stStation.coords_chs.Top_y = iTopY * m_fHeigthMutiple;
+        m_stStation.coords_chs.Under_x = iUnderX * m_fWidthMutiple;
+        m_stStation.coords_chs.Under_y = iUnderY * m_fHeigthMutiple;
         if(m_SameLocation_CheckBox->isChecked())
         {
-            m_stStation.coords_en.Top_x = pt.x() * m_fWidthMutiple;
-            m_stStation.coords_en.Top_y = pt.y() * m_fHeigthMutiple;
+            m_stStation.coords_en.Top_x = iTopX * m_fWidthMutiple;
+            m_stStation.coords_en.Top_y = iTopY * m_fHeigthMutiple;
+            m_stStation.coords_en.Under_x = iUnderX * m_fWidthMutiple;
+            m_stStation.coords_en.Under_y = iUnderY * m_fHeigthMutiple;
         }
     }
     else
     {
-        m_stStation.coords_en.Top_x = pt.x() * m_fWidthMutiple;
-        m_stStation.coords_en.Top_y = pt.y() * m_fHeigthMutiple;
-    }
-    m_pXmlParse->RefleshParamMap(m_iStation,m_stStation);
-    ParamShowReflesh(m_stStation);
-}
-void CMapLinePos::mouseReleaseEvent(QMouseEvent *e)
-{
-    QPoint pt = e->pos();
-    if(pt.x() > m_iPic_Width || pt.y() > m_iPic_Height)
-        return;
-    //qDebug() << pt.x()<< pt.y();
-    if(m_bIsChinese)
-    {
-        m_stStation.coords_chs.Under_x = pt.x() * m_fWidthMutiple;
-        m_stStation.coords_chs.Under_y = pt.y() * m_fHeigthMutiple;
-        if(m_SameLocation_CheckBox->isChecked())
-        {
-            m_stStation.coords_en.Under_x = pt.x() * m_fWidthMutiple;
-            m_stStation.coords_en.Under_y = pt.y() * m_fHeigthMutiple;
-        }
-    }
-    else
-    {
-        m_stStation.coords_en.Under_x = pt.x() * m_fWidthMutiple;
-        m_stStation.coords_en.Under_y = pt.y() * m_fHeigthMutiple;
+        m_stStation.coords_en.Top_x = iTopX * m_fWidthMutiple;
+        m_stStation.coords_en.Top_y = iTopY * m_fHeigthMutiple;
+        m_stStation.coords_en.Under_x = iUnderX * m_fWidthMutiple;
+        m_stStation.coords_en.Under_y = iUnderY * m_fHeigthMutiple;
     }
     m_pXmlParse->RefleshParamMap(m_iStation,m_stStation);
     ParamShowReflesh(m_stStation);
 }
 
-void CMapLinePos::paintEvent(QPaintEvent *e)
+void  CMapLinePos::keyPressEvent(QKeyEvent *event)
 {
-
+    qDebug() << event->key();
+    switch(event->key())
+    {
+    case Qt::Key_Up:
+        on_click_Show_prev_Station_slot();
+        break;
+    case Qt::Key_Down:
+        on_click_Show_next_Station_slot();
+        break;
+    case Qt::Key_PageUp:
+        on_click_Show_Prev_slot();
+        break;
+    case Qt::Key_PageDown:
+        on_click_Show_Next_slot();
+        break;
+    }
 }
 
 //内容改变相关处理
@@ -190,6 +235,7 @@ void CMapLinePos::on_click_Show_Prev_slot()
     m_PictureLabel->setPixmap(map);
     m_PictureLabel->setScaledContents(true);
     ShowWidgets(m_iSetPicWidth,m_iSetPicHeigth);
+    UpdateRect();
 }
 
 //下一张图片相关处理
@@ -229,10 +275,12 @@ void CMapLinePos::on_click_Show_Next_slot()
     qDebug() << "width()" << image.width() <<  "height()" << image.height();
     qDebug() << m_iSetPicWidth << m_iSetPicHeigth;
 
+
     m_PictureLabel->setGeometry(0,0,m_iSetPicWidth,m_iSetPicHeigth);
     m_PictureLabel->setPixmap(map);
     m_PictureLabel->setScaledContents(true);
     ShowWidgets(m_iSetPicWidth,m_iSetPicHeigth);
+    UpdateRect();
 }
 
 //获取文件夹路径
@@ -305,6 +353,7 @@ void CMapLinePos::on_click_OpenSlot()
         }
         return;
     }
+
     QString LineStationname = m_Path_Test->text() + "LineStation.xml";
     m_pXmlParse->LineStationParse(LineStationname.toStdString().c_str());
 
@@ -346,13 +395,43 @@ void CMapLinePos::on_click_OpenSlot()
     }
 
     qDebug() << "width()" << image.width() <<  "height()" << image.height();
-    qDebug() << m_iSetPicWidth << m_iSetPicHeigth;
+    qDebug() << m_iSetPicWidth << m_iSetPicHeigth << m_fWidthMutiple << m_fHeigthMutiple;
 
     m_PictureLabel->setGeometry(0,0,m_iSetPicWidth,m_iSetPicHeigth);
 
     m_PictureLabel->setPixmap(map);
     m_PictureLabel->setScaledContents(true);
     m_PictureLabel->show();
+
+    int iLine = -1,iStationIndex = 0;
+    m_LineFirstStation.clear();
+    if(m_pXmlParse->m_stPostionMap.size() > 0)
+    {
+        iLine = atoi(m_pXmlParse->m_stPostionMap.find(0).value().lineid);
+        m_LineFirstStation.insert(iLine,iStationIndex);
+    }
+    for(QMap<int,ST_MAP_LINE_POSITION>::iterator it = m_pXmlParse->m_stPostionMap.begin() ; it != m_pXmlParse->m_stPostionMap.end();it++,iStationIndex++)
+    {
+        QList<int > stationList;
+        if(iLine != atoi(it->lineid))
+        {
+            iLine = atoi(it->lineid);
+            m_LineFirstStation.insert(iLine,iStationIndex);
+        }
+
+        CRectLabel *pLabel = new CRectLabel(m_PictureLabel);
+        pLabel->setObjectName(QString("%1").arg(iStationIndex));
+        pLabel->setGeometry(it->coords_chs.Top_x/m_fWidthMutiple,
+                            it->coords_chs.Top_y/m_fHeigthMutiple,
+                            (it->coords_chs.Under_x - it->coords_chs.Top_x)/m_fWidthMutiple,
+                            (it->coords_chs.Under_y-it->coords_chs.Top_y)/m_fHeigthMutiple);
+
+        pLabel->hide();
+//        pLabel->setText(QString("%1").arg(iStationIndex));
+        it->pLabel = pLabel;
+    }
+
+    m_PictureLabel->setCurrentRectLabel(m_pXmlParse->m_stPostionMap.begin().value().pLabel);
 
     m_Open_Btn->hide();
     m_Path_Btn->hide();
@@ -363,6 +442,7 @@ void CMapLinePos::on_click_OpenSlot()
     memset(&m_stStation,0,sizeof(m_stStation));
     memcpy(&m_stStation,&(it.value()),sizeof(ST_MAP_LINE_POSITION));
     ParamShowReflesh(m_stStation);
+    UpdateRect();
 }
 
 //上一个站点参数显示处理
@@ -370,54 +450,106 @@ void CMapLinePos::on_click_Show_prev_Station_slot()
 {
     m_iStation--;
     if(m_iStation < 0)
-        m_iStation = m_pXmlParse->m_stPostionTempMap.size() - 1;
+        m_iStation = m_pXmlParse->m_stPostionMap.size() - 1;
+
     memset(&m_stStation,0,sizeof(m_stStation));
-    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
+    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
     ParamShowReflesh(m_stStation);
+    UpdateRect();
 }
 
 //下一个站点参数显示处理
 void CMapLinePos::on_click_Show_next_Station_slot()
 {
+    qDebug() << __FUNCTION__ << __LINE__ ;
     m_iStation++;
-    if(m_iStation >= m_pXmlParse->m_stPostionTempMap.size())
+    if(m_iStation >= m_pXmlParse->m_stPostionMap.size())
         m_iStation = 0;
     memset(&m_stStation,0,sizeof(m_stStation));
-    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
+    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
     ParamShowReflesh(m_stStation);
+    UpdateRect();
+    qDebug() << __FUNCTION__ << __LINE__ ;
 }
 //转跳下一条线路
 void CMapLinePos::on_click_Show_next_Line_slot()
 {
-    int iCurLine = atoi(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value().lineid);
+    if(0 == m_LineFirstStation.size())
+        return;
+    int iCurLine = atoi(m_pXmlParse->m_stPostionMap.find(m_iStation).value().lineid);
 
-    for(; m_iStation < m_pXmlParse->m_stPostionTempMap.size();m_iStation++)
+    QMap<int , int>::iterator it = m_LineFirstStation.find(iCurLine);
+    if(it != m_LineFirstStation.end())
     {
-        if(iCurLine != atoi(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value().lineid))
-            break;
+        it++;
+        if(it != m_LineFirstStation.end())
+            m_iStation = it.value();
+        else
+            m_iStation = m_LineFirstStation.begin().value();
     }
-    if(m_iStation >= m_pXmlParse->m_stPostionTempMap.size())
-        m_iStation = 0;
+    else
+    {
+        it = m_LineFirstStation.begin();
+        qDebug() << it.value();
+    }
     memset(&m_stStation,0,sizeof(m_stStation));
-    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionTempMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
+    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
     ParamShowReflesh(m_stStation);
+    UpdateRect();
 }
 //转跳上一条线路
 void CMapLinePos::on_click_Show_prev_Line_slot()
 {
+    if(0 == m_LineFirstStation.size())
+        return;
+    else if(1 == m_LineFirstStation.size())
+    {
+        m_iStation = m_LineFirstStation.begin().value();
+    }
+    else
+    {
+        int iCurLine = atoi(m_pXmlParse->m_stPostionMap.find(m_iStation).value().lineid);
+        qDebug() << __FUNCTION__ << __LINE__ << iCurLine;
+        QMap<int , int>::iterator it = m_LineFirstStation.begin();
+        for(;it != m_LineFirstStation.end();it++)
+        {
+            if(iCurLine == it.key())
+            {
+                if(it == m_LineFirstStation.begin())
+                {
+                    it = m_LineFirstStation.end();
+                    it--;
+                    m_iStation = it.value();
+                }
+                break;
+            }
+            else
+            {
+                m_iStation = it.value();
+            }
+        }
+    }
 
+    memset(&m_stStation,0,sizeof(m_stStation));
+    memcpy(&m_stStation,&(m_pXmlParse->m_stPostionMap.find(m_iStation).value()),sizeof(ST_MAP_LINE_POSITION));
+    ParamShowReflesh(m_stStation);
+    UpdateRect();
 }
 
 //添加新站点
 void CMapLinePos::on_click_AddNewNode_slot()
 {
-    int iNewStationNum = m_pXmlParse->m_stPostionTempMap.size();
+    int iNewStationNum = m_pXmlParse->m_stPostionMap.size();
     ST_MAP_LINE_POSITION stStation;
     memset(&stStation,0,sizeof(stStation));
+    strcpy(stStation.lineid,m_pXmlParse->m_stPostionMap.find(m_iStation).value().lineid);
     m_pXmlParse->AddNewNode(iNewStationNum,stStation);
     //转跳到新建站点并显示
+    m_pXmlParse->m_stPostionMap.find(iNewStationNum).value().pLabel = new CRectLabel(m_PictureLabel);
     m_iStation = iNewStationNum;
+    memcpy(&m_stStation,&stStation,sizeof(ST_MAP_LINE_POSITION));
     ParamShowReflesh(stStation);
+    UpdateRect();
 }
 
 //选择生成坐标倍数生效
@@ -477,11 +609,35 @@ void CMapLinePos::ParamShowReflesh(ST_MAP_LINE_POSITION stPosition)
     m_EN_Pos_h->setText(QString("%1").arg(stPosition.coords_en.Under_y));
 }
 
+void CMapLinePos::UpdateRect()//刷新框
+{
+    qDebug() << __FUNCTION__ << __LINE__ ;
+    int iCurrentLine = atoi(m_pXmlParse->m_stPostionMap.find(m_iStation).value().lineid);
+    qDebug() << __FUNCTION__ << __LINE__ << iCurrentLine;
+    for(QMap<int,ST_MAP_LINE_POSITION>::iterator it = m_pXmlParse->m_stPostionMap.begin();it != m_pXmlParse->m_stPostionMap.end();it++)
+    {
+        if(iCurrentLine == atoi(it->lineid))
+        {
+            it->pLabel->setGeometry(it->coords_chs.Top_x/m_fWidthMutiple,
+                                it->coords_chs.Top_y/m_fHeigthMutiple,
+                                (it->coords_chs.Under_x - it->coords_chs.Top_x)/m_fWidthMutiple,
+                                (it->coords_chs.Under_y-it->coords_chs.Top_y)/m_fHeigthMutiple);
+            it->pLabel->show();
+            if(m_iStation == it.key())
+            {
+                m_PictureLabel->setCurrentRectLabel(it->pLabel);
+            }
+        }
+        else
+        {
+            it->pLabel->hide();
+        }
+    }
+}
+
 //xml解析后显示的相关控件初始化
 void CMapLinePos::XMLShowInit()
 {
-    m_iLineId = 0;
-
     m_text_chs_label = new QLabel(this);
     m_text_en_label = new QLabel(this);
     m_stationId_label = new QLabel(this);
@@ -529,7 +685,6 @@ void CMapLinePos::XMLShowInit()
     m_SameLocation_label = new QLabel(this);
     m_SameLocation_label->setText("中文和英文坐标是否一样");
     m_iStation = 0;
-
 }
 //隐藏某些控件
 void CMapLinePos::HideWidgets()
@@ -672,6 +827,8 @@ void CMapLinePos::ShowWidgets(int Width,int Height)
     m_SameLocation_CheckBox->show();
     m_SameLocation_label->setGeometry(Width+30,iHeight,200,30);
     m_SameLocation_label->show();
+
+
 }
 
 CMapLinePos::~CMapLinePos()

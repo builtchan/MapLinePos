@@ -17,4 +17,6 @@ SOURCES += main.cpp\
     xmlparse.cpp
 
 HEADERS  += maplinepos.h \
+    CMyLabel.h \
+    CRectLabel.h \
     xmlparse.h

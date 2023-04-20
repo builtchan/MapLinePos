@@ -101,25 +101,35 @@ int CMyXmlParse::MapLineXmlParse(const char *pzFileName)
                 stPositon.coords_en.Under_y = 0;
             }
         }
+        if(m_LineStationListMap.find(atoi(stPositon.lineid)) == m_LineStationListMap.end())
+        {
+            QList<int> stationList;
+            m_LineStationListMap.insert(atoi(stPositon.lineid),stationList);
+        }
+        else
+        {
+            m_LineStationListMap.find(atoi(stPositon.lineid)).value().push_back(iCount);
+        }
         //下一个元素
         Position = Position.nextSiblingElement();
         //将解析到的内容加到列表里
-        m_stPostionMap.insert(iCount,stPositon);
-        m_stPostionTempMap.insert(iCount++,stPositon);
+        m_stPostionMap.insert(iCount++,stPositon);
+//        m_stPostionTempMap.insert(iCount++,stPositon);
     }
     file.close();
     return 0;
 }
 //刷新参数Map表
-int CMyXmlParse::RefleshParamMap(int iKey,ST_MAP_LINE_POSITION stPosition)
+int CMyXmlParse::RefleshParamMap(int iKey, const ST_MAP_LINE_POSITION &stPosition)
 {
-  m_stPostionTempMap[iKey] = stPosition;
+//  m_stPostionMap[iKey] = stPosition;
+  memcpy(&m_stPostionMap[iKey],&stPosition,sizeof(ST_MAP_LINE_POSITION) - sizeof(stPosition.pLabel));
   return 0;
 }
 //添加新站点
 int CMyXmlParse::AddNewNode(int iKey,ST_MAP_LINE_POSITION stPosition)
 {
-    m_stPostionTempMap.insert(iKey,stPosition);
+    m_stPostionMap.insert(iKey,stPosition);
     return 0;
 }
 
@@ -147,10 +157,10 @@ int CMyXmlParse::RewriteXml(const char *pzPath,const char*pNewFilename,float fMu
 
   ST_MAP_LINE_POSITION stPosition;
 
-  for(int i = 0 ; i < m_stPostionTempMap.size(); i++)
+  for(int i = 0 ; i < m_stPostionMap.size(); i++)
   {
     memset(&stPosition,0,sizeof(stPosition));
-    memcpy(&stPosition,&(m_stPostionTempMap.find(i).value()),sizeof(stPosition));
+    memcpy(&stPosition,&(m_stPostionMap.find(i).value()),sizeof(stPosition));
     QDomElement position = Domc.createElement("Position");
 
     position.setAttribute("text_chs",QString("%1").arg(stPosition.text_chs));

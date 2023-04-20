@@ -17,7 +17,8 @@
 #include <string.h>
 #include <QMap>
 #include <QList>
-
+#include <QLabel>
+#include "CRectLabel.h"
 //StaionList
 typedef struct _ST_STATION_LIST_
 {
@@ -71,7 +72,7 @@ typedef struct _ST_MAP_LINE_POSITION_
   char lineid[4];
   ST_XYWH coords_chs;
   ST_XYWH coords_en;
-
+  CRectLabel *pLabel;
 }ST_MAP_LINE_POSITION;
 
 class CMyXmlParse:QObject
@@ -82,7 +83,7 @@ public:
   ~CMyXmlParse();
 public:
   int MapLineXmlParse(const char *pzFileName);
-  int RefleshParamMap(int iKey,ST_MAP_LINE_POSITION stPosition);
+  int RefleshParamMap(int iKey,const ST_MAP_LINE_POSITION& stPosition);
   int AddNewNode(int iKey,ST_MAP_LINE_POSITION stPosition);
   int RewriteXml(const char *pzPath,const char*pNewFilename,float fMultiple);
   int LineStationParse(const char *pzPath);
@@ -92,6 +93,7 @@ public:
 public:
   QMap<int,ST_MAP_LINE_POSITION> m_stPostionMap;
   QMap<int,ST_MAP_LINE_POSITION> m_stPostionTempMap;
+  QMap<int,QList<int> > m_LineStationListMap;
   int iNum;
 
   ST_LINE_STATION m_stLineStation;

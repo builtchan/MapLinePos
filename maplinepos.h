@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QMouseEvent>
+#include <QKeyEvent>
 #include <QPaintEvent>
 #include <QPoint>
 #include <QImage>
@@ -23,14 +24,15 @@
 #include <QFileDialog>
 #include <QRadioButton>
 #include <QCheckBox>
-
+#include "CMyLabel.h"
+#include "CRectLabel.h"
 class CMapLinePos : public QWidget
 {
   Q_OBJECT
 
 private:
 
-    QLabel *m_PictureLabel;         //图片展示
+    CMyLabel *m_PictureLabel;         //图片展示
     QStringList m_Picture_list;     //图片列表
     QStringList m_XML_list;         //xml配置文件列表
     QPushButton *m_Open_Btn;        //确认加载路径
@@ -54,7 +56,8 @@ private:
 
 //站点相关
 private:
-    int m_iLineId;                  //线路id
+    QMap<int , int> m_LineFirstStation;//key:线路 value:线路第一个点
+//    QMap<int ,CRectLabel*> m_iStationRectLabelMap;//key:站点 value:框框
     int m_iStation;                 //站点索引
     ST_MAP_LINE_POSITION m_stStation;
 
@@ -110,13 +113,15 @@ public:
     void ParseXml(QString XmlPath);
     void UpdateParam();                                       //刷新参数
     void ParamShowReflesh(ST_MAP_LINE_POSITION stPosition);  //刷新显示参数
+    void UpdateRect();//刷新框
 
 
 protected:
-    void mousePressEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
-    void paintEvent(QPaintEvent *e);
+//    void mousePressEvent(QMouseEvent *e);
+//    void mouseReleaseEvent(QMouseEvent *e);
+//    void paintEvent(QPaintEvent *e);
     //void changeEvent(QEvent *e);
+    void keyPressEvent(QKeyEvent *event) override;
 
 public slots:
     void on_click_Show_Next_slot();
@@ -132,6 +137,7 @@ public slots:
     void Edit_changed_slot();
     void Choice_Use_Multiple_slot();
 
+    void touchRectPos(int iTopX,int iTopY,int iUnderX,int iUnderY);
 };
 
 #endif // MAPLINEPOS_H
